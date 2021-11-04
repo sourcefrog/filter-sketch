@@ -39,4 +39,17 @@ fn main() {
 
     println!("stateless closure");
     Opt::new().filter(&mut |i| i % 3 == 0).run();
+
+    println!("read local variable");
+    let primes = vec![2, 3, 5, 7];
+    Opt::new().filter(&mut |i| primes.contains(&i)).run();
+
+    println!("mutate local variable");
+    let mut seen: Vec<i32> = Vec::new();
+    Opt::new()
+        .filter(&mut |i| {
+            seen.push(i);
+            true
+        })
+        .run();
 }
