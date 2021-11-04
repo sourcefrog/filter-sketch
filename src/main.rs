@@ -30,7 +30,7 @@ impl<'f> Opt<'f> {
     {
         Opt {
             filter: Some(Box::new(filter)),
-            printer: self.printer,
+            ..self
         }
     }
 
@@ -39,8 +39,8 @@ impl<'f> Opt<'f> {
         P: FnMut(i32) + 'f,
     {
         Opt {
-            filter: self.filter,
             printer: Box::new(printer),
+            ..self
         }
     }
 
