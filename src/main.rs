@@ -3,16 +3,28 @@
 
 struct Opt<'f> {
     filter: Option<&'f mut dyn FnMut(i32) -> bool>,
+    printer: Option<&'f dyn Fn(i32)>,
 }
 
 impl<'f> Opt<'f> {
-    fn new() -> Opt<'static> {
-        Opt { filter: None }
+    fn new() -> Opt<'f> {
+        Opt {
+            filter: None,
+            printer: Some(&|i| println!("{}", i)),
+        }
     }
 
-    fn filter(self, filter: &mut dyn FnMut(i32) -> bool) -> Opt {
+    fn filter(self, filter: &'f mut dyn FnMut(i32) -> bool) -> Opt<'f> {
         Opt {
             filter: Some(filter),
+            printer: self.printer,
+        }
+    }
+
+    fn printer(self, printer: &'f dyn Fn(i32)) -> Opt<'f> {
+        Opt {
+            filter: self.filter,
+            printer: Some(printer),
         }
     }
 
@@ -20,7 +32,9 @@ impl<'f> Opt<'f> {
         for i in 0..10 {
             if let Some(ref mut filter) = self.filter {
                 if filter(i) {
-                    println!("{}", i);
+                    if let Some(printer) = self.printer {
+                        printer(i)
+                    }
                 }
             }
         }
@@ -54,4 +68,10 @@ fn main() {
         })
         .run();
     assert_eq!(seen.len(), 10);
+
+    println!("with two closures");
+    Opt::new()
+        .filter(&mut |i| i & 2 == 0)
+        .printer(&|i| println!("{:x}", i))
+        .run();
 }
