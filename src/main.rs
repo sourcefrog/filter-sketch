@@ -1,4 +1,5 @@
-// trait Filter = FnMut(i32) -> bool;
+/*! An experiment in accumulating callback closures into a builder pattern.
+ */
 
 struct Opt<'f> {
     filter: Option<&'f mut dyn FnMut(i32) -> bool>,
@@ -52,4 +53,5 @@ fn main() {
             true
         })
         .run();
+    assert_eq!(seen.len(), 10);
 }
