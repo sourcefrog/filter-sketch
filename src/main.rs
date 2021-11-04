@@ -9,7 +9,7 @@ impl<'f> Opt<'f> {
         Opt { filter: None }
     }
 
-    fn filter<'g>(self, filter: &'g mut dyn FnMut(i32) -> bool) -> Opt<'g> {
+    fn filter(self, filter: &mut dyn FnMut(i32) -> bool) -> Opt {
         Opt {
             filter: Some(filter),
         }
