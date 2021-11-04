@@ -1,16 +1,18 @@
 /*! An experiment in accumulating callback closures into a builder pattern.
  */
 
+use std::fmt::Write;
+
 struct Opt<'f> {
     filter: Option<&'f mut dyn FnMut(i32) -> bool>,
-    printer: Option<&'f dyn Fn(i32)>,
+    printer: Option<&'f mut dyn FnMut(i32)>,
 }
 
 impl<'f> Opt<'f> {
     fn new() -> Opt<'f> {
         Opt {
             filter: None,
-            printer: Some(&|i| println!("{}", i)),
+            printer: None,
         }
     }
 
@@ -21,7 +23,7 @@ impl<'f> Opt<'f> {
         }
     }
 
-    fn printer(self, printer: &'f dyn Fn(i32)) -> Opt<'f> {
+    fn printer(self, printer: &'f mut dyn FnMut(i32)) -> Opt<'f> {
         Opt {
             filter: self.filter,
             printer: Some(printer),
@@ -32,8 +34,10 @@ impl<'f> Opt<'f> {
         for i in 0..10 {
             if let Some(ref mut filter) = self.filter {
                 if filter(i) {
-                    if let Some(printer) = self.printer {
-                        printer(i)
+                    if let Some(printer) = &mut self.printer {
+                        printer(i);
+                    } else {
+                        println!("{}", i);
                     }
                 }
             }
@@ -72,6 +76,14 @@ fn main() {
     println!("with two closures");
     Opt::new()
         .filter(&mut |i| i & 2 == 0)
-        .printer(&|i| println!("{:x}", i))
+        .printer(&mut |i| println!("{:x}", i))
         .run();
+
+    println!("accumulate results");
+    let mut output = String::new();
+    Opt::new()
+        .filter(&mut |i| i & 2 == 0)
+        .printer(&mut |i| write!(&mut output, "{:#x}, ", i).unwrap())
+        .run();
+    assert_eq!(output, "0x0, 0x1, 0x4, 0x5, 0x8, 0x9, ");
 }
