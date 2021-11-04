@@ -13,14 +13,14 @@ use std::fmt::Write;
 
 struct Opt<'f> {
     filter: Option<Box<dyn FnMut(i32) -> bool + 'f>>,
-    printer: Option<Box<dyn FnMut(i32) + 'f>>,
+    printer: Box<dyn FnMut(i32) + 'f>,
 }
 
 impl<'f> Opt<'f> {
     fn new() -> Opt<'f> {
         Opt {
             filter: None,
-            printer: None,
+            printer: Box::new(|i| println!("{}", i)),
         }
     }
 
@@ -40,7 +40,7 @@ impl<'f> Opt<'f> {
     {
         Opt {
             filter: self.filter,
-            printer: Some(Box::new(printer)),
+            printer: Box::new(printer),
         }
     }
 
@@ -48,11 +48,7 @@ impl<'f> Opt<'f> {
         for i in 0..10 {
             if let Some(ref mut filter) = self.filter {
                 if filter(i) {
-                    if let Some(printer) = &mut self.printer {
-                        printer(i);
-                    } else {
-                        println!("{}", i);
-                    }
+                    (self.printer)(i);
                 }
             }
         }
